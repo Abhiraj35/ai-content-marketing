@@ -6,9 +6,8 @@
  * Character limits and platform best practices enforced
  */
 import type { step as InngestStep } from "inngest";
-import type OpenAI from "openai";
 import { z } from "zod";
-import { openai } from "../../lib/openai-client";
+import { generateContent } from "../../lib/gemini-client";
 
 // Zod schema for structured output
 const socialPostsSchema = z.object({
@@ -114,7 +113,7 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates social posts using OpenAI
+ * Generates social posts using Gemini
  */
 export async function generateSocialPosts(
   step: typeof InngestStep,
@@ -128,37 +127,17 @@ export async function generateSocialPosts(
   instagram: string;
   medium: string;
 }> {
-  console.log("Generating social posts with GPT-4");
+  console.log("Generating social posts with Gemini");
 
   try {
-    const createCompletion = openai.chat.completions.create.bind(
-      openai.chat.completions,
+    const response = await step.ai.wrap(
+      "generate-social-posts",
+      generateContent,
+      SOCIAL_SYSTEM_PROMPT,
+      buildSocialPrompt(blogTitle, blogContent, excerpt),
     );
 
-    const response = (await step.ai.wrap(
-      "generate-social-posts",
-      createCompletion,
-      {
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: SOCIAL_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: buildSocialPrompt(blogTitle, blogContent, excerpt),
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 2000,
-      },
-    )) as OpenAI.Chat.Completions.ChatCompletion;
-
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content generated");
-    }
-
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(response);
     const validated = SocialPostsResponseSchema.parse(parsed);
 
     // Safety check: Truncate Twitter if needed

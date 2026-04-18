@@ -8,9 +8,8 @@
  * - URL slug generation
  */
 import type { step as InngestStep } from "inngest";
-import type OpenAI from "openai";
 import { z } from "zod";
-import { openai } from "../../lib/openai-client";
+import { generateContent } from "../../lib/gemini-client";
 
 // Zod schema for structured output
 const seoMetadataSchema = z.object({
@@ -98,7 +97,7 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates SEO metadata using OpenAI
+ * Generates SEO metadata using Gemini
  */
 export async function generateSeoMetadata(
   step: typeof InngestStep,
@@ -111,37 +110,17 @@ export async function generateSeoMetadata(
   keywords: string[];
   slug: string;
 }> {
-  console.log("Generating SEO metadata with GPT-4");
+  console.log("Generating SEO metadata with Gemini");
 
   try {
-    const createCompletion = openai.chat.completions.create.bind(
-      openai.chat.completions,
+    const response = await step.ai.wrap(
+      "generate-seo-metadata",
+      generateContent,
+      SEO_SYSTEM_PROMPT,
+      buildSeoPrompt(blogTitle, blogContent, excerpt),
     );
 
-    const response = (await step.ai.wrap(
-      "generate-seo-metadata",
-      createCompletion,
-      {
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: SEO_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: buildSeoPrompt(blogTitle, blogContent, excerpt),
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.5,
-        max_tokens: 1000,
-      },
-    )) as OpenAI.Chat.Completions.ChatCompletion;
-
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content generated");
-    }
-
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(response);
     const validated = SeoMetadataResponseSchema.parse(parsed);
 
     // Safety checks

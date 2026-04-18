@@ -511,7 +511,7 @@ export const updatePublishStatus = mutation({
     const now = Date.now();
     let socialPosts = project.socialPosts;
     let emailNewsletter = project.emailNewsletter;
-    let publishedTo = project.publishedTo || [];
+    const publishedTo = [...(project.publishedTo ?? [])];
 
     // Update specific platform
     if (

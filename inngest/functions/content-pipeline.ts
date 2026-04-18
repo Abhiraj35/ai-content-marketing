@@ -35,8 +35,8 @@ export const contentPipeline = inngest.createFunction(
     id: "content-pipeline",
     optimizeParallelism: true,
     retries: 3,
+    triggers: [{ event: "content/generate" }],
   },
-  { event: "content/generate" },
   async ({ event, step }) => {
     const { projectId, inputType, inputContent } = event.data;
 

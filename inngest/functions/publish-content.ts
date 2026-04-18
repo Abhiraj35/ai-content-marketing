@@ -27,8 +27,20 @@ import { ConvexHttpClient } from "convex/browser";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+type SocialPublishContent = { text: string; imageUrl?: string };
+
+type SocialPlatform =
+  | "twitter"
+  | "linkedin"
+  | "facebook"
+  | "instagram"
+  | "medium";
+
 // Platform publishing functions map
-const PLATFORM_PUBLISHERS: Record<string, (content: any) => Promise<void>> = {
+const PLATFORM_PUBLISHERS: Record<
+  string,
+  (content: SocialPublishContent) => Promise<void>
+> = {
   twitter: publishToTwitter,
   linkedin: publishToLinkedIn,
   facebook: publishToFacebook,
@@ -40,14 +52,18 @@ export const publishContent = inngest.createFunction(
   {
     id: "publish-content",
     retries: 3,
-    onFailure: async ({ event }) => {
-      const { projectId, platform } = event.data;
+    triggers: [{ event: "content/publish" }],
+    onFailure: async ({ event: failureEvent }) => {
+      const original = failureEvent.data.event;
+      const data = original.data as {
+        projectId: string;
+        platforms: string[];
+      };
       console.error(
-        `Publishing failed for ${platform} on project ${projectId}`,
+        `Publishing exhausted retries for project ${data.projectId}; platforms: ${data.platforms.join(", ")}`,
       );
     },
   },
-  { event: "content/publish" },
   async ({ event, step }) => {
     const { projectId, platforms, userEmail } = event.data;
 
@@ -75,14 +91,12 @@ export const publishContent = inngest.createFunction(
             status: "draft",
           });
 
-          let content: any;
-
           // Prepare content based on platform
           if (platform === "email") {
             if (!project.emailNewsletter) {
               throw new Error("Email newsletter not generated");
             }
-            content = {
+            await sendEmail({
               to: userEmail,
               subject:
                 project.emailNewsletter.subjectLines[
@@ -90,24 +104,26 @@ export const publishContent = inngest.createFunction(
                 ],
               html: project.emailNewsletter.htmlContent,
               text: project.emailNewsletter.plainText,
-            };
-            await sendEmail(content);
+            });
           } else {
             // Social media platforms
             if (!project.socialPosts) {
               throw new Error("Social posts not generated");
             }
-            content =
-              project.socialPosts[platform as keyof typeof project.socialPosts];
-            if (!content) {
+            const post = project.socialPosts[platform as SocialPlatform];
+            if (!post) {
               throw new Error(`No content for ${platform}`);
             }
+            const socialContent: SocialPublishContent = {
+              text: post.text,
+              imageUrl: post.imageUrl,
+            };
 
             const publisher = PLATFORM_PUBLISHERS[platform];
             if (!publisher) {
               throw new Error(`Unknown platform: ${platform}`);
             }
-            await publisher(content);
+            await publisher(socialContent);
           }
 
           // Mark as published

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,14 +22,22 @@ import {
   Check,
   X,
   Copy,
-  Send,
   AlertCircle,
 } from "lucide-react";
+
+type ContentProject = Doc<"contentProjects">;
+
+type SocialPlatform =
+  | "twitter"
+  | "linkedin"
+  | "facebook"
+  | "instagram"
+  | "medium";
 
 export default function DashboardPage() {
   const params = useParams();
   const router = useRouter();
-  const projectId = params.projectId as string;
+  const projectId = params.projectId as Id<"contentProjects">;
 
   const project = useQuery(api.contentProjects.getProject, { projectId });
 
@@ -135,7 +144,7 @@ export default function DashboardPage() {
 }
 
 // Blog Post Editor Component
-function BlogPostEditor({ project }: { project: any }) {
+function BlogPostEditor({ project }: { project: ContentProject }) {
   const updateBlogPost = useMutation(api.contentProjects.updateBlogPost);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(project.blogPost?.title || "");
@@ -163,7 +172,7 @@ function BlogPostEditor({ project }: { project: any }) {
       });
       toast.success("Blog post saved!");
       setIsEditing(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to save");
     } finally {
       setIsSaving(false);
@@ -185,14 +194,16 @@ function BlogPostEditor({ project }: { project: any }) {
     );
   }
 
+  const blogPost = project.blogPost;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
-            {project.blogPost.readingTime} min read
+            {blogPost.readingTime} min read
           </span>
-          {project.blogPost.isEdited && (
+          {blogPost.isEdited && (
             <Badge variant="secondary">Edited</Badge>
           )}
         </div>
@@ -202,9 +213,9 @@ function BlogPostEditor({ project }: { project: any }) {
             variant="outline"
             size="sm"
             onClick={() => {
-              setTitle(project.blogPost.title);
-              setContent(project.blogPost.content);
-              setExcerpt(project.blogPost.excerpt);
+              setTitle(blogPost.title);
+              setContent(blogPost.content);
+              setExcerpt(blogPost.excerpt);
               setIsEditing(!isEditing);
             }}
           >
@@ -261,11 +272,11 @@ function BlogPostEditor({ project }: { project: any }) {
         </div>
       ) : (
         <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold mb-4">{project.blogPost.title}</h1>
+          <h1 className="text-3xl font-bold mb-4">{blogPost.title}</h1>
           <p className="text-lg text-muted-foreground mb-6 italic">
-            {project.blogPost.excerpt}
+            {blogPost.excerpt}
           </p>
-          <div className="whitespace-pre-wrap">{project.blogPost.content}</div>
+          <div className="whitespace-pre-wrap">{blogPost.content}</div>
         </div>
       )}
     </div>
@@ -273,12 +284,16 @@ function BlogPostEditor({ project }: { project: any }) {
 }
 
 // Social Posts Editor Component
-function SocialPostsEditor({ project }: { project: any }) {
+function SocialPostsEditor({ project }: { project: ContentProject }) {
   const updateSocialPost = useMutation(api.contentProjects.updateSocialPost);
   const [editingPlatform, setEditingPlatform] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
 
-  const platforms = [
+  const platforms: {
+    key: SocialPlatform;
+    label: string;
+    color: string;
+  }[] = [
     { key: "twitter", label: "Twitter/X", color: "bg-black" },
     { key: "linkedin", label: "LinkedIn", color: "bg-blue-600" },
     { key: "facebook", label: "Facebook", color: "bg-blue-500" },
@@ -295,12 +310,12 @@ function SocialPostsEditor({ project }: { project: any }) {
     try {
       await updateSocialPost({
         projectId: project._id,
-        platform: platform as any,
+        platform: platform as SocialPlatform,
         text: editText,
       });
       toast.success(`${platform} post saved!`);
       setEditingPlatform(null);
-    } catch (error) {
+    } catch {
       toast.error("Failed to save");
     }
   };
@@ -320,11 +335,13 @@ function SocialPostsEditor({ project }: { project: any }) {
     );
   }
 
+  const socialPosts = project.socialPosts;
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4">
         {platforms.map((platform) => {
-          const post = project.socialPosts[platform.key];
+          const post = socialPosts[platform.key];
           return (
             <div key={platform.key} className="border rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
@@ -393,7 +410,7 @@ function SocialPostsEditor({ project }: { project: any }) {
 }
 
 // Email Editor Component
-function EmailEditor({ project }: { project: any }) {
+function EmailEditor({ project }: { project: ContentProject }) {
   const updateEmailNewsletter = useMutation(
     api.contentProjects.updateEmailNewsletter,
   );
@@ -418,7 +435,7 @@ function EmailEditor({ project }: { project: any }) {
       });
       toast.success("Email newsletter saved!");
       setIsEditing(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to save");
     }
   };
@@ -538,7 +555,7 @@ function EmailEditor({ project }: { project: any }) {
 }
 
 // SEO Editor Component
-function SeoEditor({ project }: { project: any }) {
+function SeoEditor({ project }: { project: ContentProject }) {
   const updateSeoMetadata = useMutation(api.contentProjects.updateSeoMetadata);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(project.seoMetadata?.title || "");
@@ -564,7 +581,7 @@ function SeoEditor({ project }: { project: any }) {
       });
       toast.success("SEO metadata saved!");
       setIsEditing(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to save");
     }
   };
@@ -584,6 +601,8 @@ function SeoEditor({ project }: { project: any }) {
     );
   }
 
+  const seoMetadata = project.seoMetadata;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
@@ -591,10 +610,10 @@ function SeoEditor({ project }: { project: any }) {
           variant="outline"
           onClick={() => {
             if (!isEditing) {
-              setTitle(project.seoMetadata.title);
-              setDescription(project.seoMetadata.description);
-              setKeywords(project.seoMetadata.keywords.join(", "));
-              setSlug(project.seoMetadata.slug);
+              setTitle(seoMetadata.title);
+              setDescription(seoMetadata.description);
+              setKeywords(seoMetadata.keywords.join(", "));
+              setSlug(seoMetadata.slug);
             }
             setIsEditing(!isEditing);
           }}
@@ -653,27 +672,27 @@ function SeoEditor({ project }: { project: any }) {
           <div>
             <Label className="text-lg font-semibold">Meta Title</Label>
             <p className="text-lg text-blue-600 mt-1">
-              {project.seoMetadata.title}
+              {seoMetadata.title}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              {project.seoMetadata.title.length} characters
+              {seoMetadata.title.length} characters
             </p>
           </div>
 
           <div>
             <Label className="text-lg font-semibold">Meta Description</Label>
             <p className="text-gray-600 mt-1">
-              {project.seoMetadata.description}
+              {seoMetadata.description}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              {project.seoMetadata.description.length} characters
+              {seoMetadata.description.length} characters
             </p>
           </div>
 
           <div>
             <Label className="text-lg font-semibold">Keywords</Label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {project.seoMetadata.keywords.map(
+              {seoMetadata.keywords.map(
                 (keyword: string, idx: number) => (
                   <Badge key={idx} variant="secondary">
                     {keyword}
@@ -686,7 +705,7 @@ function SeoEditor({ project }: { project: any }) {
           <div>
             <Label className="text-lg font-semibold">URL Slug</Label>
             <p className="font-mono text-sm bg-muted p-2 rounded mt-1">
-              /blog/{project.seoMetadata.slug}
+              /blog/{seoMetadata.slug}
             </p>
           </div>
         </div>
@@ -715,7 +734,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function JobStatusBadge({ name, status }: { name: string; status?: string }) {
-  const icons: Record<string, React.ReactNode> = {
+  const icons: Record<string, ReactNode> = {
     pending: <span className="h-2 w-2 rounded-full bg-gray-300" />,
     running: <Loader2 className="h-3 w-3 animate-spin" />,
     completed: <Check className="h-3 w-3 text-green-500" />,

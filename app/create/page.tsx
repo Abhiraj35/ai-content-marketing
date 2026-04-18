@@ -20,7 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { inngest } from "@/inngest/client";
 
 export default function CreatePage() {
   const router = useRouter();

@@ -8,9 +8,8 @@
  * - Reading time calculation
  */
 import type { step as InngestStep } from "inngest";
-import type OpenAI from "openai";
 import { z } from "zod";
-import { openai, calculateReadingTime } from "../../lib/openai-client";
+import { generateContent, calculateReadingTime } from "../../lib/gemini-client";
 
 // Zod schema for structured output
 const blogPostSchema = z.object({
@@ -94,7 +93,7 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates blog post using OpenAI
+ * Generates blog post using Gemini
  */
 export async function generateBlogPost(
   step: typeof InngestStep,
@@ -106,37 +105,17 @@ export async function generateBlogPost(
   excerpt: string;
   readingTime: number;
 }> {
-  console.log("Generating blog post with GPT-4");
+  console.log("Generating blog post with Gemini");
 
   try {
-    const createCompletion = openai.chat.completions.create.bind(
-      openai.chat.completions,
+    const response = await step.ai.wrap(
+      "generate-blog-post",
+      generateContent,
+      BLOG_SYSTEM_PROMPT,
+      buildBlogPostPrompt(inputType, inputContent),
     );
 
-    const response = (await step.ai.wrap(
-      "generate-blog-post",
-      createCompletion,
-      {
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: BLOG_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: buildBlogPostPrompt(inputType, inputContent),
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 4000,
-      },
-    )) as OpenAI.Chat.Completions.ChatCompletion;
-
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content generated");
-    }
-
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(response);
     const validated = BlogPostResponseSchema.parse(parsed);
 
     // Calculate reading time

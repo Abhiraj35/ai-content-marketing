@@ -8,9 +8,8 @@
  * - Plain text fallback
  */
 import type { step as InngestStep } from "inngest";
-import type OpenAI from "openai";
 import { z } from "zod";
-import { openai } from "../../lib/openai-client";
+import { generateContent } from "../../lib/gemini-client";
 
 // Zod schema for structured output
 const emailNewsletterSchema = z.object({
@@ -98,7 +97,7 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates email newsletter using OpenAI
+ * Generates email newsletter using Gemini
  */
 export async function generateEmailNewsletter(
   step: typeof InngestStep,
@@ -111,37 +110,17 @@ export async function generateEmailNewsletter(
   htmlContent: string;
   plainText: string;
 }> {
-  console.log("Generating email newsletter with GPT-4");
+  console.log("Generating email newsletter with Gemini");
 
   try {
-    const createCompletion = openai.chat.completions.create.bind(
-      openai.chat.completions,
+    const response = await step.ai.wrap(
+      "generate-email-newsletter",
+      generateContent,
+      EMAIL_SYSTEM_PROMPT,
+      buildEmailPrompt(blogTitle, blogContent, excerpt),
     );
 
-    const response = (await step.ai.wrap(
-      "generate-email-newsletter",
-      createCompletion,
-      {
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: EMAIL_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: buildEmailPrompt(blogTitle, blogContent, excerpt),
-          },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-        max_tokens: 4000,
-      },
-    )) as OpenAI.Chat.Completions.ChatCompletion;
-
-    const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("No content generated");
-    }
-
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(response);
     const validated = EmailNewsletterResponseSchema.parse(parsed);
 
     return {

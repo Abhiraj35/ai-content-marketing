@@ -166,4 +166,4 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_user_and_status", ["userId", "status"])
     .index("by_created_at", ["createdAt"]),
-});
+}); 
