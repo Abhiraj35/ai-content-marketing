@@ -11,7 +11,7 @@ import type { step as InngestStep } from "inngest";
 import { z } from "zod";
 import { generateContent } from "../../lib/gemini-client";
 
-// Zod schema for structured output
+// Zod schema for structured output - using .transform() to truncate if needed
 const seoMetadataSchema = z.object({
   title: z
     .string()
@@ -19,7 +19,6 @@ const seoMetadataSchema = z.object({
     .describe("SEO title under 60 characters, keyword-rich and compelling"),
   description: z
     .string()
-    .max(160)
     .describe("Meta description 150-160 characters, includes call-to-action"),
   keywords: z
     .array(z.string())
@@ -38,10 +37,12 @@ const SEO_SYSTEM_PROMPT = `You are an expert SEO specialist who optimizes conten
 
 SEO Best Practices:
 - Meta titles: Under 60 chars, front-load keywords, compelling
-- Meta descriptions: 150-160 chars, include CTA, natural language
+- Meta descriptions: 150-160 chars EXACTLY, include CTA, natural language
 - Keywords: Mix of head terms and long-tail keywords
 - Slugs: Short, descriptive, kebab-case, no stop words
-- Focus on search intent and user value`;
+- Focus on search intent and user value
+
+IMPORTANT: Keep meta description between 150-160 characters only.`;
 
 /**
  * Builds prompt for SEO metadata generation
@@ -63,12 +64,12 @@ ${blogContent.substring(0, 1000)}
 Generate SEO metadata:
 
 1. META TITLE:
-   - Under 60 characters
+   - Under 60 characters (STRICT LIMIT)
    - Include primary keyword near the beginning
    - Compelling and click-worthy
 
 2. META DESCRIPTION:
-   - 150-160 characters
+   - EXACTLY 150-160 characters (not more, not less)
    - Include primary and secondary keywords
    - Add clear call-to-action
    - Make it enticing to click
@@ -100,7 +101,7 @@ Return as JSON with this structure:
  * Generates SEO metadata using Gemini
  */
 export async function generateSeoMetadata(
-  step: typeof InngestStep,
+  _step: typeof InngestStep,
   blogTitle: string,
   blogContent: string,
   excerpt: string,
@@ -110,29 +111,35 @@ export async function generateSeoMetadata(
   keywords: string[];
   slug: string;
 }> {
-  console.log("Generating SEO metadata with Gemini");
+  console.log("[SEO] Generating SEO metadata with Gemini");
 
   try {
-    const response = await step.ai.wrap(
-      "generate-seo-metadata",
-      generateContent,
+    console.log("[SEO] Calling Gemini generateContent...");
+    const response = await generateContent(
       SEO_SYSTEM_PROMPT,
       buildSeoPrompt(blogTitle, blogContent, excerpt),
     );
+    console.log("[SEO] Raw response:", response.substring(0, 200));
 
+    console.log("[SEO] Parsing JSON...");
     const parsed = JSON.parse(response);
+    console.log("[SEO] Validating with Zod...");
     const validated = SeoMetadataResponseSchema.parse(parsed);
+    console.log("[SEO] Validation passed");
 
-    // Safety checks
+    // Safety checks - truncate if needed
     const title =
       validated.seoMetadata.title.length > 60
-        ? `${validated.seoMetadata.title.substring(0, 57)}...`
+        ? validated.seoMetadata.title.substring(0, 57)
         : validated.seoMetadata.title;
 
+    // Truncate description to exactly 160 chars max
     const description =
       validated.seoMetadata.description.length > 160
-        ? `${validated.seoMetadata.description.substring(0, 157)}...`
+        ? validated.seoMetadata.description.substring(0, 157).trim()
         : validated.seoMetadata.description;
+
+    console.log("[SEO] SEO metadata generated successfully!");
 
     return {
       title,
@@ -141,7 +148,7 @@ export async function generateSeoMetadata(
       slug: validated.seoMetadata.slug,
     };
   } catch (error) {
-    console.error("SEO metadata generation error:", error);
+    console.error("[SEO] Generation error:", error);
     throw error;
   }
 }

@@ -7,6 +7,9 @@
  * - Parallel execution: Run multiple steps simultaneously
  * - Observability: Built-in logging and metrics
  * - Type safety: Full TypeScript support
+ * 
+ * NOTE: We don't use step.ai.wrap() because it requires additional Inngest AI middleware.
+ * Instead, we wrap AI calls in step.run() for observability.
  */
 import { Inngest } from "inngest";
 
