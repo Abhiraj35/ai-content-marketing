@@ -63,18 +63,15 @@ export default function CreatePage() {
       });
 
       // Trigger Inngest workflow
-      await fetch("/api/inngest", {
+      await fetch("/api/trigger-inngest", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: "content/generate",
-          data: {
-            projectId,
-            inputType,
-            inputContent: inputContent.trim(),
-          },
+          projectId,
+          inputType,
+          inputContent: inputContent.trim(),
         }),
       });
 

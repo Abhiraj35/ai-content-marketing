@@ -113,7 +113,7 @@ export async function generateEmailNewsletter(
   console.log("Generating email newsletter with Gemini");
 
   try {
-    const response = await step.ai.wrap(
+    const response = await step.ai.wrap( 
       "generate-email-newsletter",
       generateContent,
       EMAIL_SYSTEM_PROMPT,
