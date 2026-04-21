@@ -40,7 +40,7 @@ export const contentPipeline = inngest.createFunction(
   async ({ event, step }) => {
     const { projectId, inputType, inputContent } = event.data;
 
-    console.log(`Starting content pipeline for project ${projectId}`);
+  // console.log(`Starting content pipeline for project ${projectId}`);
 
     try {
       // Step 1: Mark project as generating
@@ -187,10 +187,10 @@ export const contentPipeline = inngest.createFunction(
         });
       });
 
-      console.log(`Content pipeline completed for project ${projectId}`);
+      // console.log(`Content pipeline completed for project ${projectId}`);
       return { success: true, projectId };
     } catch (error) {
-      console.error("Content pipeline failed:", error);
+      // console.error("Content pipeline failed:", error);
 
       // Record error in Convex
       try {

@@ -24,9 +24,6 @@ export async function generateContent(
   systemPrompt: string,
   userPrompt: string,
 ): Promise<string> {
-  console.log("[GEMINI] Starting content generation...");
-  console.log("[GEMINI] System prompt length:", systemPrompt.length);
-  console.log("[GEMINI] User prompt length:", userPrompt.length);
   
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not set");
@@ -35,7 +32,6 @@ export async function generateContent(
   const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
 
   try {
-    console.log("[GEMINI] Calling Gemini API...");
     const result = await gemini.generateContent({
       contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
       generationConfig: {
@@ -45,7 +41,6 @@ export async function generateContent(
       },
     });
 
-    console.log("[GEMINI] Response received from Gemini");
     
     const response = result.response;
     const text = response.text();
@@ -54,8 +49,6 @@ export async function generateContent(
       throw new Error("No content generated from Gemini");
     }
     
-    console.log("[GEMINI] Generated text length:", text.length);
-    console.log("[GEMINI] First 200 chars:", text.substring(0, 200));
 
     return text;
   } catch (error) {

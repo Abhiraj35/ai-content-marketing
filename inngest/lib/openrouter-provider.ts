@@ -26,14 +26,8 @@ export class OpenRouterProvider implements AIProvider {
     systemPrompt: string,
     userPrompt: string,
   ): Promise<string> {
-    console.log("[OPENROUTER] Starting content generation...");
-    console.log("[OPENROUTER] Model:", this.model);
-    console.log("[OPENROUTER] System prompt length:", systemPrompt.length);
-    console.log("[OPENROUTER] User prompt length:", userPrompt.length);
 
     try {
-      console.log("[OPENROUTER] Calling OpenRouter API...");
-
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
@@ -67,9 +61,6 @@ export class OpenRouterProvider implements AIProvider {
       if (!content) {
         throw new Error("[OPENROUTER] No content in response");
       }
-
-      console.log("[OPENROUTER] Response received");
-      console.log("[OPENROUTER] Content length:", content.length);
 
       return content;
     } catch (error) {

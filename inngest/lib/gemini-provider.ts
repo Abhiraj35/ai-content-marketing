@@ -25,14 +25,10 @@ export class GeminiProvider implements AIProvider {
     systemPrompt: string,
     userPrompt: string,
   ): Promise<string> {
-    console.log("[GEMINI] Starting content generation...");
-    console.log("[GEMINI] System prompt length:", systemPrompt.length);
-    console.log("[GEMINI] User prompt length:", userPrompt.length);
 
     const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
 
     try {
-      console.log("[GEMINI] Calling Gemini API...");
       const result = await this.gemini.generateContent({
         contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
         generationConfig: {
@@ -42,7 +38,6 @@ export class GeminiProvider implements AIProvider {
         },
       });
 
-      console.log("[GEMINI] Response received");
 
       const response = result.response;
       const text = response.text();
@@ -51,7 +46,6 @@ export class GeminiProvider implements AIProvider {
         throw new Error("[GEMINI] No content generated");
       }
 
-      console.log("[GEMINI] Generated text length:", text.length);
       return text;
     } catch (error) {
       console.error("[GEMINI] API Error:", error);

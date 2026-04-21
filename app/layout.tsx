@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { Toaster } from "sonner";
@@ -15,10 +15,15 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "AI Content Marketing Pipeline",
-  description:
-    "Multi-agent content generation for blog posts, social media, and email newsletters",
+  title: "Sprout | AI Content Marketing",
+  description: "Transform one idea into a thriving ecosystem of content. Generate blog posts, social media, and email newsletters with AI.",
 };
 
 export default function RootLayout({
@@ -27,15 +32,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased min-h-screen bg-[#FFFBEB] text-[#431407]`}
       >
         <ClerkProvider>
           <ConvexClientProvider>
             {children}
-            <Toaster position="top-center" />
+            <Toaster 
+              position="top-center" 
+              toastOptions={{
+                style: {
+                  background: '#FAFAF9',
+                  border: '1px solid #E7E5E4',
+                  borderRadius: '0.75rem',
+                },
+              }}
+            />
           </ConvexClientProvider>
         </ClerkProvider>
       </body>
