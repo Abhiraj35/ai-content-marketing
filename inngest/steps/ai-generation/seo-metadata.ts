@@ -9,9 +9,9 @@
  */
 import type { step as InngestStep } from "inngest";
 import { z } from "zod";
-import { generateContent } from "../../lib/gemini-client";
+import { getAIProvider } from "../../lib/ai-client";
 
-// Zod schema for structured output - using .transform() to truncate if needed
+// Zod schema for structured output
 const seoMetadataSchema = z.object({
   title: z
     .string()
@@ -98,7 +98,7 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates SEO metadata using Gemini
+ * Generates SEO metadata using the configured AI provider
  */
 export async function generateSeoMetadata(
   _step: typeof InngestStep,
@@ -111,11 +111,12 @@ export async function generateSeoMetadata(
   keywords: string[];
   slug: string;
 }> {
-  console.log("[SEO] Generating SEO metadata with Gemini");
+  console.log("[SEO] Generating SEO metadata");
 
   try {
-    console.log("[SEO] Calling Gemini generateContent...");
-    const response = await generateContent(
+    const ai = getAIProvider();
+    console.log("[SEO] Calling AI provider...");
+    const response = await ai.generateContent(
       SEO_SYSTEM_PROMPT,
       buildSeoPrompt(blogTitle, blogContent, excerpt),
     );

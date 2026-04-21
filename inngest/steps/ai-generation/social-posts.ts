@@ -7,7 +7,7 @@
  */
 import type { step as InngestStep } from "inngest";
 import { z } from "zod";
-import { generateContent } from "../../lib/gemini-client";
+import { getAIProvider } from "../../lib/ai-client";
 
 // Zod schema for structured output
 const socialPostsSchema = z.object({
@@ -113,7 +113,7 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates social posts using Gemini
+ * Generates social posts using the configured AI provider
  */
 export async function generateSocialPosts(
   _step: typeof InngestStep,
@@ -127,11 +127,12 @@ export async function generateSocialPosts(
   instagram: string;
   medium: string;
 }> {
-  console.log("[SOCIAL-POSTS] Generating social posts with Gemini");
+  console.log("[SOCIAL-POSTS] Generating social posts");
 
   try {
-    console.log("[SOCIAL-POSTS] Calling Gemini generateContent...");
-    const response = await generateContent(
+    const ai = getAIProvider();
+    console.log("[SOCIAL-POSTS] Calling AI provider...");
+    const response = await ai.generateContent(
       SOCIAL_SYSTEM_PROMPT,
       buildSocialPrompt(blogTitle, blogContent, excerpt),
     );

@@ -9,7 +9,7 @@
  */
 import type { step as InngestStep } from "inngest";
 import { z } from "zod";
-import { generateContent } from "../../lib/gemini-client";
+import { getAIProvider } from "../../lib/ai-client";
 
 // Zod schema for structured output
 const emailNewsletterSchema = z.object({
@@ -53,7 +53,7 @@ function buildEmailPrompt(
 ): string {
   // Limit content length to prevent token overflow
   const truncatedContent = blogContent.substring(0, 3000);
-  
+
   return `Create a professional email newsletter based on this blog article.
 
 BLOG TITLE: ${blogTitle}
@@ -90,7 +90,7 @@ Create an email newsletter with:
    - Same content without HTML tags
    - Clear formatting with line breaks
 
-IMPORTANT: 
+IMPORTANT:
 - Return VALID JSON only
 - Escape all quotes properly
 - Keep HTML content under 5000 characters
@@ -108,7 +108,7 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates email newsletter using Gemini
+ * Generates email newsletter using the configured AI provider
  */
 export async function generateEmailNewsletter(
   _step: typeof InngestStep,
@@ -121,11 +121,12 @@ export async function generateEmailNewsletter(
   htmlContent: string;
   plainText: string;
 }> {
-  console.log("[EMAIL] Generating email newsletter with Gemini");
+  console.log("[EMAIL] Generating email newsletter");
 
   try {
-    console.log("[EMAIL] Calling Gemini generateContent...");
-    const response = await generateContent(
+    const ai = getAIProvider();
+    console.log("[EMAIL] Calling AI provider...");
+    const response = await ai.generateContent(
       EMAIL_SYSTEM_PROMPT,
       buildEmailPrompt(blogTitle, blogContent, excerpt),
     );
@@ -154,7 +155,7 @@ export async function generateEmailNewsletter(
         throw parseError;
       }
     }
-    
+
     console.log("[EMAIL] Validating with Zod...");
     const validated = EmailNewsletterResponseSchema.parse(parsed);
     console.log("[EMAIL] Validation passed");

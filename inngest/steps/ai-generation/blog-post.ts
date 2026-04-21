@@ -9,7 +9,7 @@
  */
 import type { step as InngestStep } from "inngest";
 import { z } from "zod";
-import { generateContent, calculateReadingTime } from "../../lib/gemini-client";
+import { getAIProvider, calculateReadingTime } from "../../lib/ai-client";
 
 // Zod schema for structured output
 const blogPostSchema = z.object({
@@ -93,11 +93,7 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates blog post using Gemini
- * 
- * NOTE: This function is designed to be called INSIDE step.run() in the Inngest function.
- * We don't use step.ai.wrap() because it requires additional Inngest AI middleware setup.
- * Instead, we call this function inside step.run() for observability and retries.
+ * Generates blog post using the configured AI provider
  */
 export async function generateBlogPost(
   _step: typeof InngestStep,
@@ -114,13 +110,14 @@ export async function generateBlogPost(
   console.log("[BLOG-POST] Input content preview:", inputContent.substring(0, 100));
 
   try {
-    console.log("[BLOG-POST] Calling Gemini generateContent...");
-    const response = await generateContent(
+    const ai = getAIProvider();
+    console.log("[BLOG-POST] Calling AI provider...");
+    const response = await ai.generateContent(
       BLOG_SYSTEM_PROMPT,
       buildBlogPostPrompt(inputType, inputContent),
     );
 
-    console.log("[BLOG-POST] Raw response from AI:", response.substring(0, 200));
+    console.log("[BLOG-POST] Raw response:", response.substring(0, 200));
 
     let parsed;
     try {
