@@ -7,7 +7,7 @@
  */
 import type { step as InngestStep } from "inngest";
 import { z } from "zod";
-import { generateContent } from "../../lib/gemini-client";
+import { getAIProvider } from "../../lib/ai-client";
 
 // Zod schema for structured output
 const socialPostsSchema = z.object({
@@ -113,10 +113,10 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates social posts using Gemini
+ * Generates social posts using the configured AI provider
  */
 export async function generateSocialPosts(
-  step: typeof InngestStep,
+  _step: typeof InngestStep,
   blogTitle: string,
   blogContent: string,
   excerpt: string,
@@ -127,24 +127,30 @@ export async function generateSocialPosts(
   instagram: string;
   medium: string;
 }> {
-  console.log("Generating social posts with Gemini");
+  console.log("[SOCIAL-POSTS] Generating social posts");
 
   try {
-    const response = await step.ai.wrap(
-      "generate-social-posts",
-      generateContent,
+    const ai = getAIProvider();
+    console.log("[SOCIAL-POSTS] Calling AI provider...");
+    const response = await ai.generateContent(
       SOCIAL_SYSTEM_PROMPT,
       buildSocialPrompt(blogTitle, blogContent, excerpt),
     );
+    console.log("[SOCIAL-POSTS] Raw response:", response.substring(0, 200));
 
+    console.log("[SOCIAL-POSTS] Parsing JSON...");
     const parsed = JSON.parse(response);
+    console.log("[SOCIAL-POSTS] Validating with Zod...");
     const validated = SocialPostsResponseSchema.parse(parsed);
+    console.log("[SOCIAL-POSTS] Validation passed");
 
     // Safety check: Truncate Twitter if needed
     const twitter =
       validated.socialPosts.twitter.length > 280
         ? `${validated.socialPosts.twitter.substring(0, 277)}...`
         : validated.socialPosts.twitter;
+
+    console.log("[SOCIAL-POSTS] Social posts generated successfully!");
 
     return {
       twitter,
@@ -154,7 +160,7 @@ export async function generateSocialPosts(
       medium: validated.socialPosts.medium,
     };
   } catch (error) {
-    console.error("Social posts generation error:", error);
+    console.error("[SOCIAL-POSTS] Generation error:", error);
     throw error;
   }
 }

@@ -9,7 +9,7 @@
  */
 import type { step as InngestStep } from "inngest";
 import { z } from "zod";
-import { generateContent, calculateReadingTime } from "../../lib/gemini-client";
+import { getAIProvider, calculateReadingTime } from "../../lib/ai-client";
 
 // Zod schema for structured output
 const blogPostSchema = z.object({
@@ -93,10 +93,10 @@ Return as JSON with this structure:
 }
 
 /**
- * Generates blog post using Gemini
+ * Generates blog post using the configured AI provider
  */
 export async function generateBlogPost(
-  step: typeof InngestStep,
+  _step: typeof InngestStep,
   inputType: "topic" | "article",
   inputContent: string,
 ): Promise<{
@@ -105,21 +105,47 @@ export async function generateBlogPost(
   excerpt: string;
   readingTime: number;
 }> {
-  console.log("Generating blog post with Gemini");
+  console.log("[BLOG-POST] Starting blog post generation...");
+  console.log("[BLOG-POST] Input type:", inputType);
+  console.log("[BLOG-POST] Input content preview:", inputContent.substring(0, 100));
 
   try {
-    const response = await step.ai.wrap(
-      "generate-blog-post",
-      generateContent,
+    const ai = getAIProvider();
+    console.log("[BLOG-POST] Calling AI provider...");
+    const response = await ai.generateContent(
       BLOG_SYSTEM_PROMPT,
       buildBlogPostPrompt(inputType, inputContent),
     );
 
-    const parsed = JSON.parse(response);
-    const validated = BlogPostResponseSchema.parse(parsed);
+    console.log("[BLOG-POST] Raw response:", response.substring(0, 200));
+
+    let parsed;
+    try {
+      parsed = JSON.parse(response);
+      console.log("[BLOG-POST] Parsed JSON successfully");
+    } catch (parseError) {
+      console.error("[BLOG-POST] JSON parse error:", parseError);
+      console.error("[BLOG-POST] Raw response:", response);
+      throw new Error(`Failed to parse AI response as JSON: ${response.substring(0, 200)}`);
+    }
+
+    console.log("[BLOG-POST] Validating with Zod schema...");
+    let validated;
+    try {
+      validated = BlogPostResponseSchema.parse(parsed);
+      console.log("[BLOG-POST] Zod validation passed");
+    } catch (validationError) {
+      console.error("[BLOG-POST] Zod validation error:", validationError);
+      console.error("[BLOG-POST] Parsed data:", JSON.stringify(parsed, null, 2));
+      throw validationError;
+    }
 
     // Calculate reading time
     const readingTime = calculateReadingTime(validated.blogPost.content);
+    console.log("[BLOG-POST] Calculated reading time:", readingTime, "minutes");
+
+    console.log("[BLOG-POST] Blog post generated successfully!");
+    console.log("[BLOG-POST] Title:", validated.blogPost.title);
 
     return {
       title: validated.blogPost.title,
@@ -128,7 +154,7 @@ export async function generateBlogPost(
       readingTime,
     };
   } catch (error) {
-    console.error("Blog post generation error:", error);
+    console.error("[BLOG-POST] Generation error:", error);
     throw error;
   }
 }

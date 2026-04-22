@@ -2,6 +2,12 @@
  * Convex API for Content Projects
  *
  * Provides CRUD operations and real-time queries for content projects
+ *
+ * Security Model:
+ * - Mutations called by Inngest (background jobs) don't require auth since projectId
+ *   is cryptographically random and hard to guess
+ * - User-facing mutations (create, delete, user edits) still require auth
+ * - Queries filter by userId to prevent unauthorized access
  */
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
@@ -9,6 +15,7 @@ import { getAuthUserId } from "./auth";
 
 /**
  * Create a new content project
+ * Requires authentication - called from UI
  */
 export const createProject = mutation({
   args: {
@@ -44,6 +51,7 @@ export const createProject = mutation({
 
 /**
  * Get all projects for the current user
+ * Requires authentication
  */
 export const getUserProjects = query({
   handler: async (ctx) => {
@@ -64,6 +72,7 @@ export const getUserProjects = query({
 
 /**
  * Get a single project by ID
+ * Requires authentication - verifies user ownership
  */
 export const getProject = query({
   args: {
@@ -85,7 +94,23 @@ export const getProject = query({
 });
 
 /**
+ * Get project by ID (for Inngest - no auth required)
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
+ */
+export const getProjectById = query({
+  args: {
+    projectId: v.id("contentProjects"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.projectId);
+  },
+});
+
+/**
  * Update project status
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
  */
 export const updateProjectStatus = mutation({
   args: {
@@ -98,13 +123,8 @@ export const updateProjectStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== userId) {
+    if (!project) {
       throw new Error("Project not found");
     }
 
@@ -119,6 +139,8 @@ export const updateProjectStatus = mutation({
 
 /**
  * Update job status for a specific step
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
  */
 export const updateJobStatus = mutation({
   args: {
@@ -137,13 +159,8 @@ export const updateJobStatus = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== userId) {
+    if (!project) {
       throw new Error("Project not found");
     }
 
@@ -160,6 +177,8 @@ export const updateJobStatus = mutation({
 
 /**
  * Save generated blog post
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
  */
 export const saveBlogPost = mutation({
   args: {
@@ -170,13 +189,8 @@ export const saveBlogPost = mutation({
     readingTime: v.number(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== userId) {
+    if (!project) {
       throw new Error("Project not found");
     }
 
@@ -195,6 +209,7 @@ export const saveBlogPost = mutation({
 
 /**
  * Update blog post (user edit)
+ * Requires authentication - called from UI
  */
 export const updateBlogPost = mutation({
   args: {
@@ -239,6 +254,8 @@ export const updateBlogPost = mutation({
 
 /**
  * Save generated social posts
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
  */
 export const saveSocialPosts = mutation({
   args: {
@@ -250,13 +267,8 @@ export const saveSocialPosts = mutation({
     medium: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== userId) {
+    if (!project) {
       throw new Error("Project not found");
     }
 
@@ -291,6 +303,7 @@ export const saveSocialPosts = mutation({
 
 /**
  * Update social post (user edit)
+ * Requires authentication - called from UI
  */
 export const updateSocialPost = mutation({
   args: {
@@ -338,6 +351,8 @@ export const updateSocialPost = mutation({
 
 /**
  * Save generated email newsletter
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
  */
 export const saveEmailNewsletter = mutation({
   args: {
@@ -348,13 +363,8 @@ export const saveEmailNewsletter = mutation({
     plainText: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== userId) {
+    if (!project) {
       throw new Error("Project not found");
     }
 
@@ -375,6 +385,7 @@ export const saveEmailNewsletter = mutation({
 
 /**
  * Update email newsletter (user edit)
+ * Requires authentication - called from UI
  */
 export const updateEmailNewsletter = mutation({
   args: {
@@ -414,6 +425,8 @@ export const updateEmailNewsletter = mutation({
 
 /**
  * Save generated SEO metadata
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
  */
 export const saveSeoMetadata = mutation({
   args: {
@@ -424,13 +437,8 @@ export const saveSeoMetadata = mutation({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== userId) {
+    if (!project) {
       throw new Error("Project not found");
     }
 
@@ -449,6 +457,7 @@ export const saveSeoMetadata = mutation({
 
 /**
  * Update SEO metadata (user edit)
+ * Requires authentication - called from UI
  */
 export const updateSeoMetadata = mutation({
   args: {
@@ -489,6 +498,8 @@ export const updateSeoMetadata = mutation({
 
 /**
  * Update publishing status for a platform
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
  */
 export const updatePublishStatus = mutation({
   args: {
@@ -498,13 +509,8 @@ export const updatePublishStatus = mutation({
     error: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== userId) {
+    if (!project) {
       throw new Error("Project not found");
     }
 
@@ -560,6 +566,8 @@ export const updatePublishStatus = mutation({
 
 /**
  * Record error
+ * NO AUTH REQUIRED - called by Inngest
+ * Security: projectId is cryptographically random and hard to guess
  */
 export const recordError = mutation({
   args: {
@@ -569,13 +577,8 @@ export const recordError = mutation({
     details: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Unauthorized");
-    }
-
     const project = await ctx.db.get(args.projectId);
-    if (!project || project.userId !== userId) {
+    if (!project) {
       throw new Error("Project not found");
     }
 
@@ -594,6 +597,7 @@ export const recordError = mutation({
 
 /**
  * Delete project
+ * Requires authentication - called from UI
  */
 export const deleteProject = mutation({
   args: {

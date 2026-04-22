@@ -67,11 +67,11 @@ export const publishContent = inngest.createFunction(
   async ({ event, step }) => {
     const { projectId, platforms, userEmail } = event.data;
 
-    console.log(`Publishing project ${projectId} to platforms:`, platforms);
+    // console.log(`Publishing project ${projectId} to platforms:`, platforms);
 
-    // Get project data
+    // Get project data (no auth required for Inngest)
     const project = await step.run("get-project-data", async () => {
-      return await convex.query(api.contentProjects.getProject, { projectId });
+      return await convex.query(api.contentProjects.getProjectById, { projectId });
     });
 
     if (!project) {

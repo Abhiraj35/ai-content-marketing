@@ -9,7 +9,7 @@
  */
 import type { step as InngestStep } from "inngest";
 import { z } from "zod";
-import { generateContent } from "../../lib/gemini-client";
+import { getAIProvider } from "../../lib/ai-client";
 
 // Zod schema for structured output
 const emailNewsletterSchema = z.object({
@@ -39,7 +39,9 @@ Email Best Practices:
 - Use inline CSS only
 - Mobile-responsive design
 - Clear call-to-action
-- Keep paragraphs short and scannable`;
+- Keep paragraphs short and scannable
+
+IMPORTANT: Return valid JSON only, with proper escaping.`;
 
 /**
  * Builds prompt for email newsletter generation
@@ -49,23 +51,26 @@ function buildEmailPrompt(
   blogContent: string,
   excerpt: string,
 ): string {
+  // Limit content length to prevent token overflow
+  const truncatedContent = blogContent.substring(0, 3000);
+
   return `Create a professional email newsletter based on this blog article.
 
 BLOG TITLE: ${blogTitle}
 
 BLOG EXCERPT: ${excerpt}
 
-FULL ARTICLE:
-${blogContent}
+FULL ARTICLE (truncated):
+${truncatedContent}
 
 Create an email newsletter with:
 
 1. 5 SUBJECT LINE VARIATIONS:
-   - Style 1: Curiosity-driven (e.g., "The secret to...")
-   - Style 2: Benefit-focused (e.g., "How to achieve...")
-   - Style 3: Question-based (e.g., "Are you making this mistake?")
-   - Style 4: Urgency/FOMO (e.g., "Don't miss...")
-   - Style 5: Personal/Relatable (e.g., "I learned this the hard way...")
+   - Style 1: Curiosity-driven
+   - Style 2: Benefit-focused
+   - Style 3: Question-based
+   - Style 4: Urgency/FOMO
+   - Style 5: Personal/Relatable
 
 2. PREVIEW TEXT (under 100 characters):
    - Complements the subject line
@@ -85,22 +90,28 @@ Create an email newsletter with:
    - Same content without HTML tags
    - Clear formatting with line breaks
 
+IMPORTANT:
+- Return VALID JSON only
+- Escape all quotes properly
+- Keep HTML content under 5000 characters
+- Do not include markdown code blocks in JSON values
+
 Return as JSON with this structure:
 {
   "emailNewsletter": {
-    "subjectLines": ["Variation 1", "Variation 2", "Variation 3", "Variation 4", "Variation 5"],
+    "subjectLines": ["Line 1", "Line 2", "Line 3", "Line 4", "Line 5"],
     "previewText": "Brief preview text",
-    "htmlContent": "<html>...full HTML email...</html>",
+    "htmlContent": "<html>...</html>",
     "plainText": "Plain text version..."
   }
 }`;
 }
 
 /**
- * Generates email newsletter using Gemini
+ * Generates email newsletter using the configured AI provider
  */
 export async function generateEmailNewsletter(
-  step: typeof InngestStep,
+  _step: typeof InngestStep,
   blogTitle: string,
   blogContent: string,
   excerpt: string,
@@ -110,18 +121,46 @@ export async function generateEmailNewsletter(
   htmlContent: string;
   plainText: string;
 }> {
-  console.log("Generating email newsletter with Gemini");
+  console.log("[EMAIL] Generating email newsletter");
 
   try {
-    const response = await step.ai.wrap(
-      "generate-email-newsletter",
-      generateContent,
+    const ai = getAIProvider();
+    console.log("[EMAIL] Calling AI provider...");
+    const response = await ai.generateContent(
       EMAIL_SYSTEM_PROMPT,
       buildEmailPrompt(blogTitle, blogContent, excerpt),
     );
+    console.log("[EMAIL] Raw response:", response.substring(0, 200));
 
-    const parsed = JSON.parse(response);
+    // Clean up response - remove markdown code blocks if present
+    let cleanedResponse = response;
+    if (response.includes('```json')) {
+      cleanedResponse = response.replace(/```json\n?/, '').replace(/```$/, '');
+    } else if (response.includes('```')) {
+      cleanedResponse = response.replace(/```\n?/, '').replace(/```$/, '');
+    }
+
+    console.log("[EMAIL] Parsing JSON...");
+    let parsed;
+    try {
+      parsed = JSON.parse(cleanedResponse);
+    } catch (parseError) {
+      console.error("[EMAIL] JSON parse error:", parseError);
+      console.error("[EMAIL] Attempting to fix JSON...");
+      // Try to extract JSON if there's extra text
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsed = JSON.parse(jsonMatch[0]);
+      } else {
+        throw parseError;
+      }
+    }
+
+    console.log("[EMAIL] Validating with Zod...");
     const validated = EmailNewsletterResponseSchema.parse(parsed);
+    console.log("[EMAIL] Validation passed");
+
+    console.log("[EMAIL] Email newsletter generated successfully!");
 
     return {
       subjectLines: validated.emailNewsletter.subjectLines,
@@ -130,7 +169,7 @@ export async function generateEmailNewsletter(
       plainText: validated.emailNewsletter.plainText,
     };
   } catch (error) {
-    console.error("Email newsletter generation error:", error);
+    console.error("[EMAIL] Generation error:", error);
     throw error;
   }
 }
