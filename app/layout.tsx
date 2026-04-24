@@ -22,7 +22,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Sprout | AI Content Marketing",
+  title: "InkHive | AI Content Marketing",
   description: "Transform one idea into a thriving ecosystem of content. Generate blog posts, social media, and email newsletters with AI.",
 };
 
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} antialiased min-h-screen bg-[#FFFBEB] text-[#431407]`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} min-h-screen bg-background text-foreground antialiased`}
       >
         <ClerkProvider>
           <ConvexClientProvider>

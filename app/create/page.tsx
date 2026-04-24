@@ -88,7 +88,7 @@ export default function CreatePage() {
   return (
     <div className="min-h-screen bg-[#FFFBEB]">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-[#E7E5E4]/50">
+      <header className="sticky top-0 z-40  border-b border-[#E7E5E4]/50 bg-base-100/80 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
           <Link href="/">
             <Button 
@@ -116,7 +116,7 @@ export default function CreatePage() {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-10">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 rounded-full bg-linear-to-br from-amber-100 to-orange-100 flex items-center justify-center mx-auto mb-6">
             <div className="relative">
               <Sprout className="w-10 h-10 text-amber-600" />
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-teal-400 rounded-full animate-pulse" />
@@ -144,7 +144,7 @@ export default function CreatePage() {
             <TabsList className="grid w-full grid-cols-2 bg-[#F5F5F4] p-1 rounded-xl mb-6">
               <TabsTrigger 
                 value="topic"
-                className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg py-3 transition-all"
+                className="data-active:bg-white data-active:shadow-sm rounded-lg py-3 transition-all"
               >
                 <div className="flex items-center gap-2">
                   <Lightbulb className="w-4 h-4" />
@@ -153,7 +153,8 @@ export default function CreatePage() {
               </TabsTrigger>
               <TabsTrigger 
                 value="article"
-                className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg py-3 transition-all"
+                className="data-active:bg-white data-active:shadow-sm rounded-lg py-3 transition-all"
+
               >
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4" />
