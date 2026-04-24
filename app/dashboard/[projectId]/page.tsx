@@ -4,25 +4,22 @@ import { useState, useEffect, type ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import {
   ArrowLeft,
-  Save,
   Loader2,
-  Edit3,
   Check,
-  X,
-  Copy,
   AlertCircle,
-  Sprout,
+  Cpu,
   FileText,
   Share2,
   Mail,
   Globe,
-  Leaf,
+  Sparkles,
+  Box,
 } from "lucide-react";
 
 import {
@@ -35,8 +32,7 @@ import { BlogPostEditor } from "@/components/blocks/blog-post-editor";
 import { SocialPostsEditor } from "@/components/blocks/socal-post-editor";
 import { EmailEditor } from "@/components/blocks/email-editor";
 import { SeoEditor } from "@/components/blocks/seo-editor";
-
-type ContentProject = Doc<"contentProjects">;
+import Link from "next/link";
 
 export default function DashboardPage() {
   const params = useParams();
@@ -51,22 +47,22 @@ export default function DashboardPage() {
     {
       label: "Blog Post",
       value: "blog",
-      icon: <FileText className="h-4 w-4 shrink-0 text-[#57534E]" />,
+      icon: <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />,
     },
     {
       label: "Social Media",
       value: "social",
-      icon: <Share2 className="h-4 w-4 shrink-0 text-[#57534E]" />,
+      icon: <Share2 className="h-4 w-4 shrink-0 text-muted-foreground" />,
     },
     {
       label: "Email",
       value: "email",
-      icon: <Mail className="h-4 w-4 shrink-0 text-[#57534E]" />,
+      icon: <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />,
     },
     {
       label: "SEO",
       value: "seo",
-      icon: <Globe className="h-4 w-4 shrink-0 text-[#57534E]" />,
+      icon: <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />,
     },
   ];
 
@@ -80,8 +76,8 @@ export default function DashboardPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FFFBEB]">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -95,31 +91,30 @@ export default function DashboardPage() {
   const progress = Math.round((completedJobs / totalJobs) * 100);
 
   return (
-    <div className="min-h-screen bg-background md:grid md:grid-cols-[auto_minmax(0,1fr)]">
-      
+    <div className="h-screen w-full overflow-hidden bg-background text-foreground flex flex-col md:grid md:grid-cols-[auto_minmax(0,1fr)]">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen}>
-        <SidebarBody className="md:sticky md:top-0 md:h-screen md:overflow-hidden justify-between border-r border-white/10"> 
+        <SidebarBody className="md:sticky md:top-0 md:h-screen md:overflow-hidden justify-between border-r border-white/10 bg-background/50 backdrop-blur-xl">
           <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
-            <div className="flex items-center gap-2 px-2 py-2.5">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                <Sprout className="w-4 h-4 text-white" />
+            <div className={`flex items-center gap-3 py-3 ${sidebarOpen ? "px-1.5" : "justify-center px-0"}`}>
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm">
+                <Cpu className="w-4 h-4 text-primary" />
               </div>
               {sidebarOpen && (
-                <div>
-                  <p className="text-sm font-bold text-[#431407]">InkHive</p>
-                  <p className="text-xs text-[#78716C]">Project Workspace</p>
-                </div>
+                <Link href="/dashboard" className="flex flex-col gap-1">
+                  <p className="text-sm font-semibold tracking-tight text-foreground">InkHive</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Workspace</p>
+                </Link>
               )}
             </div>
 
-            <div className="mt-8 flex flex-col gap-1">
+            <div className="mt-6 flex flex-col gap-1">
               {tabLinks.map((item) => (
                 <SidebarLink
                   key={item.value}
                   link={{ label: item.label, href: `#${item.value}`, icon: item.icon }}
-                  className={`rounded-xl px-3 py-2.5 text-sm  ${activeTab === item.value
-                    ? "border border-white/10 bg-white/10 text-[#431407]"
-                    : "text-[#57534E] hover:bg-background hover:text-[#431407]"
+                  className={`rounded-xl border text-sm transition-all ${activeTab === item.value
+                    ? "border-white/15 bg-white/5 text-foreground shadow-sm"
+                    : "border-transparent text-muted-foreground hover:border-white/10 hover:bg-white/5 hover:text-foreground"
                     }`}
                   onClick={(e) => {
                     e.preventDefault();
@@ -130,41 +125,47 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="space-y-2 px-1 ">
+          <div className={`space-y-2 pb-4 ${sidebarOpen ? "px-1" : "px-0"}`}>
             <SidebarLink
               link={{
                 label: "Back Home",
-                href: "/",
-                icon: <ArrowLeft className="h-4 w-4 shrink-0 text-[#57534E]" />,
+                href: "/dashboard",
+                icon: <ArrowLeft className="h-4 w-4 shrink-0 text-muted-foreground" />,
               }}
-              className="rounded-xl px-3 py-2.5 hover:bg-background hover:text-[#431407] border border-white/10"
+              className="rounded-xl border border-transparent text-muted-foreground transition-all hover:border-white/10 hover:bg-white/5 hover:text-foreground"
             />
             <Show when="signed-in">
+              <div className={`py-2 ${sidebarOpen ? "px-3" : "flex justify-center px-0"}`}>
                 <UserButton />
-
+              </div>
             </Show>
           </div>
         </SidebarBody>
       </Sidebar>
 
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 relative overflow-y-auto overflow-x-hidden">
+        {/* Background Gradients */}
+        <div aria-hidden className="absolute inset-0 z-0 pointer-events-none opacity-40 mix-blend-screen hidden lg:block">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4" />
+        </div>
+
         {/* Header */}
-        <header className="sticky top-0 z-40  border-b border-white/10 bg-base-100/80 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-linear-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                  <Sprout className="w-4 h-4 text-white" />
+        <header className="sticky top-0 z-40 border-b border-white/10 bg-background/80 backdrop-blur-md">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <div className="flex items-start sm:items-center justify-between flex-col sm:flex-row gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shadow-sm">
+                  <Box className="w-5 h-5 text-foreground" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-[#faf0e6]">
-                    {project.blogPost?.title || "Content Project"}
+                  <h1 className="text-xl font-semibold tracking-tight text-foreground line-clamp-1">
+                    {project.blogPost?.title || "AI Content Task"}
                   </h1>
-                  <p className="text-xs text-[#78716C]">
+                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
                     {project.inputType === "topic"
-                      ? "Topic: "
-                      : "Article Repurposing"}
-                    {project.inputType === "topic" && project.inputContent}
+                      ? "Seed: "
+                      : "Source: "}
+                    {project.inputType === "topic" ? project.inputContent : "Article Repurposing"}
                   </p>
                 </div>
               </div>
@@ -173,21 +174,22 @@ export default function DashboardPage() {
             </div>
 
             {project.status === "generating" && (
-              <div className="mt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-[#431407]">
-                    Growing your content... {progress}%
+              <div className="mt-6 bg-white/5 border border-white/10 rounded-xl p-4 shadow-sm backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                    Agents processing... {progress}%
                   </span>
-                  <span className="text-xs text-[#78716C]">
-                    {completedJobs} of {totalJobs} complete
+                  <span className="text-xs text-muted-foreground bg-background/50 px-2 py-1 rounded-md border border-white/5">
+                    {completedJobs} / {totalJobs} complete
                   </span>
                 </div>
                 <Progress
                   value={progress}
-                  aria-label="Content generation progress"
-                  className="h-2 bg-[#E7E5E4]"
+                  aria-label="Agent processing progress"
+                  className="h-1.5 bg-white/10"
                 />
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   {Object.entries(jobs).map(([name, status]) => (
                     <JobStatusBadge key={name} name={name} status={status} />
                   ))}
@@ -198,22 +200,21 @@ export default function DashboardPage() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 ">
-
-            <TabsContent value="blog">
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsContent value="blog" className="mt-0 outline-none">
               <BlogPostEditor project={project} />
             </TabsContent>
 
-            <TabsContent value="social">
+            <TabsContent value="social" className="mt-0 outline-none">
               <SocialPostsEditor project={project} />
             </TabsContent>
 
-            <TabsContent value="email">
+            <TabsContent value="email" className="mt-0 outline-none">
               <EmailEditor project={project} />
             </TabsContent>
 
-            <TabsContent value="seo">
+            <TabsContent value="seo" className="mt-0 outline-none">
               <SeoEditor project={project} />
             </TabsContent>
           </Tabs>
@@ -227,23 +228,23 @@ export default function DashboardPage() {
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
     draft: {
-      bg: "bg-[#F5F5F4]",
-      text: "text-[#78716C]",
+      bg: "bg-white/5 border-white/10",
+      text: "text-muted-foreground",
       icon: null,
     },
     generating: {
-      bg: "bg-amber-100",
-      text: "text-amber-700",
+      bg: "bg-primary/10 border-primary/20",
+      text: "text-primary",
       icon: <Loader2 className="h-3 w-3 animate-spin" />,
     },
     completed: {
-      bg: "bg-teal-100",
-      text: "text-teal-700",
-      icon: <Leaf className="h-3 w-3" />,
+      bg: "bg-green-500/10 border-green-500/20",
+      text: "text-green-500",
+      icon: <Check className="h-3 w-3" />,
     },
     failed: {
-      bg: "bg-red-100",
-      text: "text-red-700",
+      bg: "bg-red-500/10 border-red-500/20",
+      text: "text-red-500",
       icon: <AlertCircle className="h-3 w-3" />,
     },
   };
@@ -251,10 +252,10 @@ function StatusBadge({ status }: { status: string }) {
   const { bg, text, icon } = config[status] || config.draft;
 
   return (
-    <Badge className={`${bg} ${text} border-0 font-medium`}>
-      <span className="flex items-center gap-1">
+    <Badge variant="outline" className={`${bg} ${text} font-medium px-3 py-1 shadow-sm`}>
+      <span className="flex items-center gap-1.5">
         {icon}
-        <span className="capitalize">{status}</span>
+        <span className="capitalize tracking-wide text-xs">{status}</span>
       </span>
     </Badge>
   );
@@ -263,33 +264,33 @@ function StatusBadge({ status }: { status: string }) {
 function JobStatusBadge({ name, status }: { name: string; status?: string }) {
   const config: Record<string, { icon: ReactNode; bg: string; text: string }> = {
     pending: {
-      icon: <span className="h-2 w-2 rounded-full bg-[#D6D3D1]" />,
-      bg: "bg-[#F5F5F4]",
-      text: "text-[#78716C]",
+      icon: <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />,
+      bg: "bg-white/5 border border-white/10",
+      text: "text-muted-foreground",
     },
     running: {
-      icon: <Loader2 className="h-3 w-3 animate-spin text-amber-600" />,
-      bg: "bg-amber-50",
-      text: "text-amber-700",
+      icon: <Loader2 className="h-3 w-3 animate-spin text-primary" />,
+      bg: "bg-primary/10 border border-primary/20",
+      text: "text-primary",
     },
     completed: {
-      icon: <Check className="h-3 w-3 text-teal-600" />,
-      bg: "bg-teal-50",
-      text: "text-teal-700",
+      icon: <Check className="h-3 w-3 text-green-500" />,
+      bg: "bg-green-500/10 border border-green-500/20",
+      text: "text-green-500",
     },
     failed: {
-      icon: <AlertCircle className="h-3 w-3 text-red-600" />,
-      bg: "bg-red-50",
-      text: "text-red-700",
+      icon: <AlertCircle className="h-3 w-3 text-red-500" />,
+      bg: "bg-red-500/10 border border-red-500/20",
+      text: "text-red-500",
     },
   };
 
   const { icon, bg, text } = config[status || "pending"];
 
   return (
-    <div className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full ${bg} ${text}`}>
+    <div className={`flex items-center gap-2 text-xs px-2.5 py-1.5 rounded-md ${bg} ${text} shadow-sm backdrop-blur-sm`}>
       {icon}
-      <span className="capitalize font-medium">
+      <span className="capitalize font-medium tracking-wide">
         {name.replace(/([A-Z])/g, " $1").trim()}
       </span>
     </div>
