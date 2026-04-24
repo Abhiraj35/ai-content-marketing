@@ -49,28 +49,28 @@ export function BlogPostEditor({ project }: { project: ContentProject }) {
 
     if (!project.blogPost) {
         return (
-            <div className="text-center py-16 px-6 bg-white rounded-2xl border border-[#E7E5E4] shadow-soft">
+            <div className="text-center py-20 px-6 bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 shadow-sm">
                 {project.status === "generating" ? (
-                    <>
-                        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-                            <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+                    <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 shadow-inner border border-primary/20">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                        <p className="text-[#431407] font-medium">
-                            Growing your blog post...
+                        <p className="text-foreground text-lg font-medium tracking-tight">
+                            Agents are writing your blog post...
                         </p>
-                        <p className="text-sm text-[#78716C] mt-1">
+                        <p className="text-sm text-muted-foreground mt-2">
                             This usually takes 15-20 seconds
                         </p>
-                    </>
+                    </div>
                 ) : (
-                    <>
-                        <div className="w-16 h-16 rounded-full bg-[#F5F5F4] flex items-center justify-center mx-auto mb-4">
-                            <FileText className="h-8 w-8 text-[#A8A29E]" />
+                    <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+                            <FileText className="h-8 w-8 text-muted-foreground/50" />
                         </div>
-                        <p className="text-[#78716C]">
+                        <p className="text-muted-foreground text-lg">
                             Blog post will appear here after generation
                         </p>
-                    </>
+                    </div>
                 )}
             </div>
         );
@@ -79,18 +79,18 @@ export function BlogPostEditor({ project }: { project: ContentProject }) {
     const blogPost = project.blogPost;
 
     return (
-        <div className="bg-white rounded-2xl border border-[#E7E5E4] shadow-soft p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-amber-600" />
+        <div className="bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 shadow-sm p-4 sm:p-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-sm shrink-0">
+                        <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-[#431407]">Blog Post</h3>
-                        <p className="text-sm text-[#78716C]">
+                        <h3 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">Blog Post</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 flex items-center gap-2">
                             {blogPost.readingTime} min read
                             {blogPost.isEdited && (
-                                <Badge className="ml-2 bg-amber-100 text-amber-700 border-amber-200">
+                                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 px-2 py-0.5 text-[10px] sm:text-xs">
                                     Edited
                                 </Badge>
                             )}
@@ -98,17 +98,16 @@ export function BlogPostEditor({ project }: { project: ContentProject }) {
                     </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex items-center gap-3">
                     <Button
                         variant="outline"
-                        size="sm"
                         onClick={() => {
                             setTitle(blogPost.title);
                             setContent(blogPost.content);
                             setExcerpt(blogPost.excerpt);
                             setIsEditing(!isEditing);
                         }}
-                        className="border-[#E7E5E4] hover:bg-amber-50 hover:text-amber-700"
+                        className="bg-transparent border-white/10 hover:bg-white/5 text-foreground transition-all"
                     >
                         {isEditing ? (
                             <>
@@ -118,68 +117,65 @@ export function BlogPostEditor({ project }: { project: ContentProject }) {
                         ) : (
                             <>
                                 <Edit3 className="h-4 w-4 mr-2" />
-                                Edit
+                                Edit Post
                             </>
                         )}
                     </Button>
                     {isEditing && (
                         <Button
-                            size="sm"
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+                            className="bg-foreground text-background hover:bg-foreground/90 transition-all shadow-sm"
                         >
                             {isSaving ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
                             ) : (
-                                <>
-                                    <Save className="h-4 w-4 mr-2" />
-                                    Save
-                                </>
+                                <Save className="h-4 w-4 mr-2" />
                             )}
+                            {isSaving ? "Saving..." : "Save Changes"}
                         </Button>
                     )}
                 </div>
             </div>
 
             {isEditing ? (
-                <div className="space-y-4">
-                    <div>
-                        <Label className="text-[#431407] font-medium">Title</Label>
+                <div className="space-y-6 bg-background/50 p-4 sm:p-6 rounded-2xl border border-white/5">
+                    <div className="space-y-2">
+                        <Label className="text-foreground font-medium text-sm ml-1">Title</Label>
                         <Input
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="border-[#E7E5E4] focus:border-amber-400 focus:ring-amber-400 rounded-xl"
+                            className="bg-white/5 border-white/10 focus-visible:ring-1 focus-visible:ring-primary rounded-xl text-base sm:text-lg py-3 sm:py-6"
                         />
                     </div>
-                    <div>
-                        <Label className="text-[#431407] font-medium">Excerpt</Label>
+                    <div className="space-y-2">
+                        <Label className="text-foreground font-medium text-sm ml-1">Excerpt</Label>
                         <Textarea
                             value={excerpt}
                             onChange={(e) => setExcerpt(e.target.value)}
                             rows={3}
-                            className="border-[#E7E5E4] focus:border-amber-400 focus:ring-amber-400 rounded-xl"
+                            className="bg-white/5 border-white/10 focus-visible:ring-1 focus-visible:ring-primary rounded-xl resize-none p-4"
                         />
                     </div>
-                    <div>
-                        <Label className="text-[#431407] font-medium">Content</Label>
+                    <div className="space-y-2">
+                        <Label className="text-foreground font-medium text-sm ml-1">Content (Markdown)</Label>
                         <Textarea
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             rows={20}
-                            className="font-mono text-sm border-[#E7E5E4] focus:border-amber-400 focus:ring-amber-400 rounded-xl"
+                            className="font-mono text-xs sm:text-sm bg-white/5 border-white/10 focus-visible:ring-1 focus-visible:ring-primary rounded-xl p-4 sm:p-6 leading-relaxed resize-y"
                         />
                     </div>
                 </div>
             ) : (
-                <div className="prose prose-amber max-w-none">
-                    <h1 className="text-3xl font-bold text-[#431407] mb-4" style={{ fontFamily: 'var(--font-playfair)' }}>
+                <div className="prose prose-zinc dark:prose-invert max-w-none prose-headings:font-medium prose-headings:tracking-tight prose-p:leading-relaxed prose-a:text-primary">
+                    <h1 className="text-2xl sm:text-4xl font-semibold tracking-tight text-foreground mb-4 sm:mb-6 break-words">
                         {blogPost.title}
                     </h1>
-                    <p className="text-lg text-[#78716C] mb-6 italic border-l-4 border-amber-400 pl-4">
+                    <p className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-10 italic border-l-4 border-primary/50 pl-4 sm:pl-6 py-2 bg-primary/5 rounded-r-xl break-words">
                         {blogPost.excerpt}
                     </p>
-                    <div className="whitespace-pre-wrap text-[#431407] leading-relaxed">
+                    <div className="whitespace-pre-wrap text-foreground/90 leading-relaxed sm:leading-loose text-base sm:text-lg break-words">
                         {blogPost.content}
                     </div>
                 </div>
