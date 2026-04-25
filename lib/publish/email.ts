@@ -4,7 +4,7 @@
  * Sends HTML emails using Resend API
  * Free tier: 3000 emails/day
  */
-import { resend, DEFAULT_FROM_EMAIL } from "@/lib/resend-client";
+import { DEFAULT_FROM_EMAIL, getResendClient } from "@/lib/resend-client";
 
 interface EmailContent {
   to: string;
@@ -20,6 +20,7 @@ export async function sendEmail(content: EmailContent): Promise<void> {
   console.log(`Sending email to ${content.to}`);
 
   try {
+    const resend = getResendClient();
     const { data, error } = await resend.emails.send({
       from: DEFAULT_FROM_EMAIL,
       to: content.to,
