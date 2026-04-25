@@ -11,8 +11,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Sprout, ArrowLeft, Loader2, Sparkles, Leaf, FileText, Lightbulb } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, FileText, Lightbulb, Box, Cpu } from "lucide-react";
 import Link from "next/link";
+import { AnimatedGroup } from "@/components/ui/animated-group";
+
+const transitionVariants = {
+  item: {
+    hidden: { opacity: 0, y: 12, filter: "blur(12px)" },
+    visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { type: "spring" as const, bounce: 0.3, duration: 1.5 } },
+  },
+};
 
 export default function CreatePage() {
   const router = useRouter();
@@ -68,11 +76,11 @@ export default function CreatePage() {
         }),
       });
 
-      toast.success("Your content seed has been planted! Growing now...");
+      toast.success("AI Agents initialized! Generating content...");
       router.push(`/dashboard/${projectId}`);
     } catch (error) {
       console.error("Error creating project:", error);
-      toast.error("Failed to plant your content seed");
+      toast.error("Failed to initialize content generation");
     } finally {
       setIsSubmitting(false);
     }
@@ -86,196 +94,166 @@ export default function CreatePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFBEB]">
+    <div className="min-h-screen overflow-hidden bg-background text-foreground relative">
+      {/* Background Gradients from Hero */}
+      <div
+        aria-hidden
+        className="z-0 absolute inset-0 pointer-events-none isolate opacity-50 contain-strict hidden lg:block"
+      >
+        <div className="w-140 h-320 -translate-y-87.5 absolute left-0 top-0 -rotate-45 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,85%,.08)_0,hsla(0,0%,55%,.02)_50%,hsla(0,0%,45%,0)_80%)]" />
+        <div className="h-320 absolute left-0 top-0 w-56 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.06)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)] [translate:5%_-50%]" />
+        <div className="h-320 -translate-y-87.5 absolute left-0 top-0 w-56 -rotate-45 bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.04)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)]" />
+      </div>
+      <div aria-hidden className="absolute inset-0 -z-10 size-full bg-[radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--background)_75%)]" />
+
       {/* Header */}
-      <header className="sticky top-0 z-40  border-b border-[#E7E5E4]/50 bg-base-100/80 backdrop-blur-sm">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
+      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
           <Link href="/">
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-[#78716C] hover:text-[#431407] hover:bg-amber-50"
+              className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
           </Link>
           <div className="flex items-center gap-2">
-            <Sprout className="w-5 h-5 text-amber-600" />
-            <span 
-              className="font-bold text-[#431407]"
-              style={{ fontFamily: 'var(--font-playfair)' }}
-            >
-              Plant a New Seed
+            <Cpu className="w-5 h-5 text-primary" />
+            <span className="font-semibold tracking-tight text-foreground">
+              New Content Task
             </span>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 rounded-full bg-linear-to-br from-amber-100 to-orange-100 flex items-center justify-center mx-auto mb-6">
-            <div className="relative">
-              <Sprout className="w-10 h-10 text-amber-600" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-teal-400 rounded-full animate-pulse" />
+      <main className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 z-10">
+        <AnimatedGroup variants={transitionVariants}>
+          {/* Hero text */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center p-3 mb-6 rounded-2xl bg-white/5 border border-white/10 shadow-sm shadow-black/10 backdrop-blur-sm">
+              <Cpu className="w-8 h-8 text-foreground" />
             </div>
-          </div>
-          <h1 
-            className="text-3xl sm:text-4xl font-bold text-[#431407] mb-4"
-            style={{ fontFamily: 'var(--font-playfair)' }}
-          >
-            What will you grow today?
-          </h1>
-          <p className="text-[#78716C] max-w-lg mx-auto">
-            Enter a topic or paste an article, and watch as AI transforms it into 
-            a complete content ecosystem.
-          </p>
-        </div>
-
-        {/* Input Section */}
-        <div className="bg-white rounded-2xl shadow-soft border border-[#E7E5E4] p-6 sm:p-8">
-          <Tabs
-            value={inputType}
-            onValueChange={(v) => setInputType(v as "topic" | "article")}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-2 bg-[#F5F5F4] p-1 rounded-xl mb-6">
-              <TabsTrigger 
-                value="topic"
-                className="data-active:bg-white data-active:shadow-sm rounded-lg py-3 transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4" />
-                  <span>Enter Topic</span>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="article"
-                className="data-active:bg-white data-active:shadow-sm rounded-lg py-3 transition-all"
-
-              >
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  <span>Paste Article</span>
-                </div>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="topic" className="space-y-4 mt-0">
-              <div className="space-y-2">
-                <Label htmlFor="topic" className="text-[#431407] font-medium">
-                  Your Topic
-                </Label>
-                <Input
-                  id="topic"
-                  placeholder="e.g., The Future of AI in Content Marketing"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  disabled={isSubmitting}
-                  className="border-[#E7E5E4] focus:border-amber-400 focus:ring-amber-400 rounded-xl py-6 text-lg"
-                />
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#78716C]">
-                    Minimum 10 characters
-                  </p>
-                  <span className="text-sm text-[#78716C]">
-                    {topic.length} characters
-                  </span>
-                </div>
-              </div>
-
-              {/* Example Topics */}
-              <div className="pt-4">
-                <p className="text-sm text-[#78716C] mb-3">Need inspiration? Try one of these:</p>
-                <div className="flex flex-wrap gap-2">
-                  {exampleTopics.map((example, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setTopic(example)}
-                      className="px-3 py-1.5 text-sm bg-amber-50 text-amber-700 rounded-full border border-amber-200 hover:bg-amber-100 transition-colors"
-                    >
-                      {example}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="article" className="space-y-4 mt-0">
-              <div className="space-y-2">
-                <Label htmlFor="article" className="text-[#431407] font-medium">
-                  Your Article
-                </Label>
-                <Textarea
-                  id="article"
-                  placeholder="Paste your full article here..."
-                  value={article}
-                  onChange={(e) => setArticle(e.target.value)}
-                  disabled={isSubmitting}
-                  rows={8}
-                  className="border-[#E7E5E4] focus:border-amber-400 focus:ring-amber-400 rounded-xl resize-none"
-                />
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#78716C]">
-                    We&#39;ll extract key insights and repurpose it
-                  </p>
-                  <span className="text-sm text-[#78716C]">
-                    {article.length} characters
-                  </span>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          {/* Submit Button */}
-          <div className="mt-8 pt-6 border-t border-[#E7E5E4]">
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white py-6 text-lg rounded-xl shadow-soft-lg transition-all duration-300 hover:scale-[1.02]"
-              size="lg"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Planting your seed...
-                </>
-              ) : (
-                <>
-                  <Leaf className="h-5 w-5 mr-2" />
-                  Plant &amp; Grow Content
-                  <Sparkles className="h-5 w-5 ml-2" />
-                </>
-              )}
-            </Button>
-
-            <p className="text-center text-sm text-[#78716C] mt-4">
-              This will generate: Blog post, Social media posts, Email newsletter, and SEO metadata
+            <h1 className="text-3xl md:text-5xl font-medium tracking-tight text-foreground mb-4">
+              Initialize Generation
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Provide a seed topic or paste an existing article. Our multi-agent AI will process it and build out your content empire.
             </p>
           </div>
-        </div>
 
-        {/* What You'll Get */}
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { icon: FileText, label: "Blog Post", color: "bg-amber-50 text-amber-600" },
-            { icon: Sprout, label: "Social Posts", color: "bg-teal-50 text-teal-600" },
-            { icon: Sparkles, label: "Newsletter", color: "bg-orange-50 text-orange-600" },
-            { icon: Lightbulb, label: "SEO Meta", color: "bg-purple-50 text-purple-600" },
-          ].map((item, index) => (
-            <div 
-              key={index} 
-              className="flex flex-col items-center p-4 bg-white rounded-xl border border-[#E7E5E4] shadow-soft"
+          {/* Input Section */}
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 shadow-xl shadow-black/5 p-6 sm:p-8">
+            <Tabs
+              value={inputType}
+              onValueChange={(v) => setInputType(v as "topic" | "article")}
+              className="w-full"
             >
-              <div className={`w-10 h-10 rounded-lg ${item.color} flex items-center justify-center mb-2`}>
-                <item.icon className="w-5 h-5" />
-              </div>
-              <span className="text-sm font-medium text-[#431407]">{item.label}</span>
+              <TabsList className="grid w-full grid-cols-2 bg-background/50 border border-white/10 p-1 rounded-xl mb-8">
+                <TabsTrigger 
+                  value="topic"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm  data-[state=active]:border data-[state=active]:border-white/10 rounded-lg py-2.5 transition-all"
+                >
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4" />
+                    <span>Topic</span>
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="article"
+                  className="data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-white/10 rounded-lg py-2.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    <span>Article</span>
+                  </div>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="topic" className="space-y-6 mt-0">
+                <div className="space-y-3">
+                  <Label htmlFor="topic" className="text-foreground font-medium">
+                    Enter Topic
+                  </Label>
+                  <Input
+                    id="topic"
+                    placeholder="e.g., The Future of AI in Content Marketing"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    disabled={isSubmitting}
+                    className="border-white/10 bg-background/50 focus-visible:ring-1 focus-visible:ring-primary rounded-xl py-6 text-lg"
+                  />
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <p>Minimum 10 characters</p>
+                    <span>{topic.length} / 10+</span>
+                  </div>
+                </div>
+
+                {/* Example Topics */}
+                <div className="pt-2">
+                  <p className="text-sm text-muted-foreground mb-3">Example Topics:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {exampleTopics.map((example, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setTopic(example)}
+                        className="px-3 py-1.5 text-xs sm:text-sm bg-white/5 text-foreground rounded-full border border-white/10 hover:bg-white/10 transition-colors"
+                      >
+                        {example}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="article" className="space-y-6 mt-0">
+                <div className="space-y-3">
+                  <Label htmlFor="article" className="text-foreground font-medium">
+                    Source Material
+                  </Label>
+                  <Textarea
+                    id="article"
+                    placeholder="Paste your full article here to repurpose it..."
+                    value={article}
+                    onChange={(e) => setArticle(e.target.value)}
+                    disabled={isSubmitting}
+                    rows={8}
+                    className="border-white/10 bg-background/50 focus-visible:ring-1 focus-visible:ring-primary rounded-xl resize-none p-4"
+                  />
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <p>AI will extract key insights and adapt the content</p>
+                    <span>{article.length} chars</span>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {/* Submit Button */}
+            <div className="mt-10 pt-8 border-t border-white/10">
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="w-full bg-foreground text-background hover:bg-foreground/90 py-6 text-lg rounded-xl shadow-sm transition-all"
+                size="lg"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Initializing Agents...
+                  </>
+                ) : (
+                  <>
+                    <Cpu className="h-5 w-5 mr-2" />
+                    Generate Content
+                    <Sparkles className="h-5 w-5 ml-2" />
+                  </>
+                )}
+              </Button>
             </div>
-          ))}
-        </div>
+          </div>
+        </AnimatedGroup>
       </main>
     </div>
   );

@@ -13,7 +13,7 @@ export default function DashboardHomePage() {
       </Show>
 
       <Show when="signed-in">
-        <div className="min-h-screen bg-[#FFFBEB]">
+        <div className="min-h-screen bg-background text-foreground">
           <Header />
           <Content />
         </div>

@@ -94,11 +94,11 @@ export function HeroSection() {
                                     </Link>
 
                                     <h1
-                                        className="mt-8 max-w-4xl mx-auto text-balance text-3xl md:text-4xl lg:mt-16 xl:text-[4rem]">
+                                        className="mt-8 max-w-4xl mx-auto text-balance text-3xl md:text-4xl lg:mt-16 xl:text-[4rem] text-transparent bg-linear-to-b from-white via-[#ece8e2] to-neutral-500 bg-clip-text">
                                         Build a Content Empire from a Single Idea
                                     </h1>
                                     <p
-                                        className="mx-auto mt-8 max-w-2xl text-balance text-lg">
+                                        className="mx-auto mt-8 max-w-2xl text-balance text-sm md:text-md">
                                         InkHive uses specialized AI agents to generate blog posts, social media content, email newsletters, and SEO metadata from a single topic in seconds                                    </p>
                                 </AnimatedGroup>
 

@@ -51,28 +51,28 @@ export function SocialPostsEditor({ project }: { project: ContentProject }) {
 
     if (!project.socialPosts) {
         return (
-            <div className="text-center py-16 px-6 bg-white rounded-2xl border border-[#E7E5E4] shadow-soft">
+            <div className="text-center py-20 px-6 bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 shadow-sm">
                 {project.status === "generating" ? (
-                    <>
-                        <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-4">
-                            <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+                    <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 shadow-inner border border-primary/20">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                        <p className="text-[#431407] font-medium">
-                            Growing your social posts...
+                        <p className="text-foreground text-lg font-medium tracking-tight">
+                            Agents are crafting your social posts...
                         </p>
-                        <p className="text-sm text-[#78716C] mt-1">
+                        <p className="text-sm text-muted-foreground mt-2">
                             This usually takes 10-15 seconds
                         </p>
-                    </>
+                    </div>
                 ) : (
-                    <>
-                        <div className="w-16 h-16 rounded-full bg-[#F5F5F4] flex items-center justify-center mx-auto mb-4">
-                            <Share2 className="h-8 w-8 text-[#A8A29E]" />
+                    <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+                            <Share2 className="h-8 w-8 text-muted-foreground/50" />
                         </div>
-                        <p className="text-[#78716C]">
+                        <p className="text-muted-foreground text-lg">
                             Social posts will appear here after generation
                         </p>
-                    </>
+                    </div>
                 )}
             </div>
         );
@@ -81,85 +81,90 @@ export function SocialPostsEditor({ project }: { project: ContentProject }) {
     const socialPosts = project.socialPosts;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {platforms.map((platform) => {
                 const post = socialPosts[platform.key];
                 return (
                     <div
                         key={platform.key}
-                        className="bg-white rounded-xl border border-[#E7E5E4] shadow-soft p-5 card-lift"
+                        className="bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 shadow-sm p-4 sm:p-8 transition-all hover:bg-white/10"
                     >
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-3 h-3 rounded-full ${platform.color}`} />
-                                <span className="font-medium text-[#431407]">{platform.label}</span>
+                        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shadow-sm ${platform.color} shrink-0`}>
+                                    <platform.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                                </div>
+                                <span className="font-semibold text-foreground tracking-tight text-base sm:text-lg">{platform.label}</span>
                                 {post.status === "published" && (
-                                    <Badge className="bg-teal-100 text-teal-700 border-teal-200">
-                                        <Check className="w-3 h-3 mr-1" />
+                                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 ml-1 sm:ml-2 font-medium tracking-wide text-[10px]">
+                                        <Check className="w-3 h-3 mr-1 hidden sm:inline" />
                                         Published
                                     </Badge>
                                 )}
                                 {post.error && (
-                                    <Badge variant="destructive">
-                                        <AlertCircle className="w-3 h-3 mr-1" />
+                                    <Badge variant="destructive" className="ml-1 sm:ml-2 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 text-[10px]">
+                                        <AlertCircle className="w-3 h-3 mr-1 hidden sm:inline" />
                                         Error
                                     </Badge>
                                 )}
                             </div>
                             <div className="flex gap-2">
                                 <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => {
                                         navigator.clipboard.writeText(post.text);
                                         toast.success("Copied to clipboard!");
                                     }}
-                                    className="text-[#78716C] hover:text-amber-600 hover:bg-amber-50"
+                                    className="bg-transparent border-white/10 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all"
                                 >
-                                    <Copy className="h-4 w-4" />
+                                    <Copy className="h-4 w-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">Copy</span>
                                 </Button>
                                 <Button
-                                    variant="ghost"
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => handleEdit(platform.key, post.text)}
-                                    className="text-[#78716C] hover:text-amber-600 hover:bg-amber-50"
+                                    className="bg-transparent border-white/10 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all"
                                 >
-                                    <Edit3 className="h-4 w-4" />
+                                    <Edit3 className="h-4 w-4 sm:mr-2" />
+                                    <span className="hidden sm:inline">Edit</span>
                                 </Button>
                             </div>
                         </div>
 
                         {editingPlatform === platform.key ? (
-                            <div className="space-y-3">
+                            <div className="space-y-4 bg-background/50 p-6 rounded-2xl border border-white/5">
                                 <Textarea
                                     value={editText}
                                     onChange={(e) => setEditText(e.target.value)}
-                                    rows={4}
-                                    className="border-[#E7E5E4] focus:border-amber-400 focus:ring-amber-400 rounded-xl"
+                                    rows={5}
+                                    className="bg-white/5 border-white/10 focus-visible:ring-1 focus-visible:ring-primary rounded-xl text-[15px] leading-relaxed p-4 resize-y"
                                 />
-                                <div className="flex gap-2">
-                                    <Button
-                                        size="sm"
-                                        onClick={() => handleSave(platform.key)}
-                                        className="bg-linear-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
-                                    >
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Save
-                                    </Button>
+                                <div className="flex justify-end gap-3 pt-2">
                                     <Button
                                         variant="outline"
-                                        size="sm"
                                         onClick={() => setEditingPlatform(null)}
-                                        className="border-[#E7E5E4] hover:bg-amber-50"
+                                        className="bg-transparent border-white/10 hover:bg-white/5 text-foreground"
                                     >
                                         Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={() => handleSave(platform.key)}
+                                        className="bg-foreground text-background hover:bg-foreground/90 transition-all shadow-sm"
+                                    >
+                                        <Save className="h-4 w-4 mr-2" />
+                                        Save Changes
                                     </Button>
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-sm text-[#431407] whitespace-pre-wrap bg-[#FFFBEB] p-4 rounded-lg border border-[#E7E5E4]">
-                                {post.text}
-                            </p>
+                            <div className="relative group">
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/5 rounded-2xl pointer-events-none" />
+                                <p className="text-sm sm:text-[15px] text-foreground/90 whitespace-pre-wrap bg-white/5 p-4 sm:p-6 rounded-2xl border border-white/10 leading-relaxed font-normal break-words">
+                                    {post.text}
+                                </p>
+                            </div>
                         )}
                     </div>
                 );
